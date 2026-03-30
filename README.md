@@ -31,3 +31,26 @@ Pastikan sistem Anda sudah terinstal perangkat lunak berikut:
 Buka terminal di dalam direktori `backend` dan jalankan Docker Compose untuk menyalakan *container* database:
 ```bash
 docker compose up -d
+```
+
+*Catatan: Database akan berjalan di `localhost` pada port `5433`.*
+
+### 3. Instalasi Dependency
+Aktifkan *virtual environment* dan instal semua pustaka yang dibutuhkan menggunakan Poetry:
+```bash
+poetry install
+```
+
+### 4. Eksekusi Migrasi Database (Alembic)
+Untuk membuat tabel-tabel secara fisik di dalam database PostgreSQL, jalankan perintah migrasi berikut:
+```bash
+poetry run alembic upgrade head
+```
+
+### 5. Verifikasi
+Gunakan Database Management Tool seperti DBeaver untuk memverifikasi tabel yang telah terbuat.
+- Host: localhost
+- Port: 5433
+- Database: acara-rsi
+- User: postgres
+- Password: 1234
