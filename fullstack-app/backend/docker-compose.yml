@@ -4,10 +4,9 @@ services:
   postgres:
     image: postgres:16
     container_name: docker-rsi
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 1234
-      POSTGRES_DB: acara-rsi
+    env_file:
+      - .env
+
     ports:
     # Catatan Port: 
       # 5433 (Kiri) = Port di laptop/host yang bebas diganti agar tidak bentrok

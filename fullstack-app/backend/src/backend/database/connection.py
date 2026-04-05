@@ -1,7 +1,12 @@
+import os
+from dotenv import load_dotenv
 from sqlmodel import create_engine, Session
 
-# URL koneksi pake port 5433 sesuai sama docker-compose
-DATABASE_URL = "postgresql://postgres:1234@localhost:5433/acara-rsi"
+# Load semua isi file .env ke dalam sistem
+load_dotenv()
+
+# Ambil variabel DATABASE_URL dari file .env
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 engine = create_engine(DATABASE_URL, echo=True)
 
