@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List
 from sqlmodel import SQLModel, Field, Session, select
-from connection import engine, get_session
+from database.connection import engine, get_session
 
 app = FastAPI(
     title="API Praktikum RSI Kelompok 2",
@@ -38,7 +38,7 @@ def read_root():
     return {"message": "Server Backend Sedang Berjalan Cuyy!"}
 
 @app.post("/tambah_user")
-def tambah_mahasiswa(data_user: UserInput, session: Session = Depends(get_session)):
+def tambah_user(data_user: UserInput, session: Session = Depends(get_session)):
     waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     # Tidak perlu id_iterator lagi karena Postgres otomatis mengisi 'id'
@@ -65,7 +65,7 @@ def tampilkan_user(session: Session = Depends(get_session)):
     return users
 
 @app.put("/edit_user")
-def edit_mahasiswa(data_user: UserUpdate, session: Session = Depends(get_session)):
+def edit_user(data_user: UserUpdate, session: Session = Depends(get_session)):
     db_user = session.get(User, data_user.id)
     
     if db_user:
@@ -84,7 +84,7 @@ def edit_mahasiswa(data_user: UserUpdate, session: Session = Depends(get_session
     return {"message": "Tidak ada id tersebut di dalam Database User", "id": data_user.id}
 
 @app.delete("/hapus_user")
-def hapus_mahasiswa(id_input: int, session: Session = Depends(get_session)):
+def hapus_user(id_input: int, session: Session = Depends(get_session)):
     db_user = session.get(User, id_input)
     
     if db_user:
