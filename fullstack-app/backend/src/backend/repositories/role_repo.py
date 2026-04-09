@@ -22,8 +22,8 @@ def get_role_by_id(db: Session, role_id: int):
 def update_role(db: Session, role_id: int, role_data: RoleCreate):
     db_role = db.get(Role, role_id)
     if db_role:
-        db_role.name = role_data.name
-        db.add(db_role) # Opsional di SQLModel tapi bagus untuk kejelasan
+        db_role.name = role_data.name # Ubah ini
+        db.add(db_role)
         db.commit()
         db.refresh(db_role)
         return db_role
