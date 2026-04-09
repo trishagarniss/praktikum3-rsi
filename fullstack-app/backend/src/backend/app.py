@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.backend.routes import role_route
+from src.backend.routes import user_route
 from src.backend.routes import event_route
 
 app = FastAPI(
@@ -12,9 +13,9 @@ def read_root():
     return {"message": "Server Backend Sedang Berjalan Cuyy!"}
 
 app.include_router(role_route.router)
+app.include_router(user_route.router)
 app.include_router(event_route.router)
 
 if __name__ == "__main__":
     import uvicorn
-    # Pakai "app:app" karena nama file app.py
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
