@@ -4,6 +4,8 @@ from src.backend.dto.account_dto import AccountCreate,  AccountResponse
 
 def create_account(db: Session, data):
     new_account = Account(
+        user_id=data.user_id,   
+        role_id=data.role_id,
         email=data.email,
         username=data.username,
         password=data.password
