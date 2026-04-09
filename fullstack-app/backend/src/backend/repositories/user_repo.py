@@ -1,13 +1,14 @@
 from sqlmodel import Session, select
-from src.backend.dto.user_dto import User,UserInput,UserUpdate
+from src.backend.database.schema.models import User
 
 
 # 1. CREATE (Buat Role Baru)
 def create_user(db: Session, data: User):
-    db.add(data)
+    new_user = User(first_name=data.first_name, last_name=data.last_name, whatsapp=data.whatsapp)
+    db.add(new_user)
     db.commit()
-    db.refresh(data)
-    return data
+    db.refresh(new_user)
+    return new_user
 
 # 2. READ (Dapatkan Semua Role)
 def get_users(db: Session):

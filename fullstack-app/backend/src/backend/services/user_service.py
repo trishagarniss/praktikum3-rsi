@@ -7,14 +7,14 @@ from ..dto.user_dto import User, UserInput, UserUpdate
 from ..repositories import user_repo as ur
 
 
-def tambah_user(data_user: UserInput, session: Session = Depends(get_session)):
+def tambah_user(data_user: UserInput, session: Session):
     waktu_sekarang = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     new_user = User(
         first_name=data_user.first_name,
         last_name=data_user.last_name,
         whatsapp=data_user.whatsapp,
-        created_at=waktu_sekarang,
+        created_at=waktu_sekarang,      
         updated_at=waktu_sekarang
     )
     
