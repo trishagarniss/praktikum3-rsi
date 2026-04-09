@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from src.backend.routes import role_route
+from src.backend.routes import event_route
 
 app = FastAPI(
     title="API Praktikum RSI Kelompok 2",
@@ -11,3 +12,4 @@ def read_root():
     return {"message": "Server Backend Sedang Berjalan Cuyy!"}
 
 app.include_router(role_route.router)
+app.include_router(event_route.router)
