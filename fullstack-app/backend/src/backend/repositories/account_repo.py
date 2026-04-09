@@ -1,4 +1,5 @@
 from sqlmodel import Session, select
+from datetime import datetime
 from src.backend.database.schema.models import Account
 from src.backend.dto.account_dto import AccountCreate,  AccountResponse
 
@@ -27,6 +28,7 @@ def update_account(db: Session, account_id: int, account_data: AccountCreate):
         db_account.email = account_data.email
         db_account.username =account_data.username
         db_account.password = account_data.password
+        db_account.updated_at = datetime.now()
         db.add(db_account)
         db.commit()
         db.refresh(db_account)
