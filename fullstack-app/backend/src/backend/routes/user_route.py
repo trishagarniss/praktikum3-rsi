@@ -1,39 +1,32 @@
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from src.backend.database.connection import get_session
-from src.backend.dto.user_dto import User,UserInput,UserUpdate
+from src.backend.dto.user_dto import UserInput, UserUpdate, UserResponse
 from src.backend.controllers import user_controller
-from typing import List, Union
-
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-@router.post("/", status_code=201)
+# 1. CREATE (POST)
+@router.post("/", status_code=201, response_model=UserResponse)
 def create_user_route(user: UserInput, db: Session = Depends(get_session)):
-    return user_controller.create_user_controller(db=db, user=user)
+    return user_controller.create_user_controller(user=user, db=db)
 
 # 2. READ ALL (GET)
-@router.get("/", response_model=Union[List[User], User])
-def get_all_roles_route(db: Session = Depends(get_session)):
+@router.get("/", response_model=list[UserResponse])
+def get_all_users_route(db: Session = Depends(get_session)):
     return user_controller.get_all_user_controller(db=db)
 
 # 3. READ BY ID (GET)
-@router.get("/{user_id}", response_model=Union[List[User], User])
+@router.get("/{user_id}", response_model=UserResponse)
 def get_user_by_id_route(user_id: int, db: Session = Depends(get_session)):
-    return user_controller.get_user_by_id_controller(db=db, user_id=user_id)
+    return user_controller.get_user_by_id_controller(user_id=user_id, db=db)
 
 # 4. UPDATE (PUT)
-@router.put("/{user_id}")
-def update_role_route(user_id : int, data : UserInput, db: Session = Depends(get_session)):
-    data_baru = UserUpdate(
-        id=user_id,
-        first_name= data.first_name,
-        last_name= data.last_name,
-        whatsapp= data.whatsapp
-    )
-    return user_controller.update_user_controller(db=db, data=data_baru)
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user_route(user_id: int, data: UserUpdate, db: Session = Depends(get_session)):
+    return user_controller.update_user_controller(user_id=user_id, data=data, db=db)
 
 # 5. DELETE (DELETE)
 @router.delete("/{user_id}")
-def delete_role_route(user_id: int, db: Session = Depends(get_session)):
-    return user_controller.delete_user_controller(db=db, id=user_id)
+def delete_user_route(user_id: int, db: Session = Depends(get_session)):
+    return user_controller.delete_user_controller(user_id=user_id, db=db)

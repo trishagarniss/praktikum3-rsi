@@ -1,20 +1,26 @@
-from typing import Optional
 from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
-class User(BaseModel):
+# 1. Skema Dasar (Biar nggak ngetik berulang)
+class UserBase(BaseModel):
     first_name: str
     last_name: str
     whatsapp: str
 
-class UserInput(User):
-    pass
-    
-class UserUpdate(User):
+# 2. Skema untuk Request Create (POST)
+class UserInput(UserBase):
     pass
 
-class RoleResponse(BaseModel):
+# 3. Skema untuk Request Update (PUT)
+class UserUpdate(UserBase):
+    pass
+
+# 4. Skema untuk Response yang dikirim ke Swagger/Klien
+class UserResponse(UserBase):
     id: int
-    name: str
+    created_at: datetime
+    updated_at: datetime
 
     class Config:
         from_attributes = True
