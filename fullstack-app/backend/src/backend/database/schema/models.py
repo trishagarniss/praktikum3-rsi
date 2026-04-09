@@ -38,8 +38,8 @@ class Account(SQLModel, table=True):
     username: Optional[str] = Field(default=None, max_length=16)
     password: Optional[str] = None
 
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    created_at: Optional[datetime] = Field(default_factory=datetime.now)
+    updated_at: Optional[datetime] = Field(default_factory=datetime.now)
 
     user: Optional[User] = Relationship(back_populates="accounts")
     role: Optional[Role] = Relationship(back_populates="accounts")
