@@ -2,10 +2,10 @@ from sqlmodel import Session
 from src.backend.repositories import account_repo, role_repo, user_repo
 from src.backend.dto.account_dto import AccountCreate, AccountResponse
 from fastapi import HTTPException
+from src.backend.utils.security import get_password_hash
 
-#BUAT AKUN BARU
+# Buat Akun Baru
 def add_new_account(db: Session, account_create: AccountCreate):
-    # Validasi input
     user = user_repo.get_user_by_id(db, account_create.user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User tidak ditemukan")
@@ -38,28 +38,38 @@ def get_account(db: Session, account_id: int):
         raise HTTPException(status_code=404, detail=f"Akun dengan ID {account_id} tidak ditemukan")
     return account
 
+# Mengubah data akun (Update Akun)
 def modify_account(db: Session, account_id: int, account_data: AccountCreate):
-    # Validasi input
     if not account_data.email or not account_data.username or not account_data.password:
         raise HTTPException(status_code=400, detail="Email, username, dan password harus diisi")
     
-    # Cek apakah akun dengan ID tersebut ada
     existing_account = account_repo.get_account_by_id(db, account_id)
     if not existing_account:
         raise HTTPException(status_code=404, detail=f"Akun dengan ID {account_id} tidak ditemukan")
     
-    # Cek apakah email sudah digunakan oleh akun lain
     existing_accounts = account_repo.get_accounts(db)
     for account in existing_accounts:
         if account.email == account_data.email and account.id != account_id:
             raise HTTPException(status_code=400, detail="Email sudah digunakan oleh akun lain")
     
+    account_data.password = get_password_hash(account_data.password)
+
     # Update akun
     updated_account = account_repo.update_account(db, account_id, account_data)
     return updated_account
 
+# Menghapus akun
 def remove_account(db: Session, account_id: int):
-    # Cek apakah akun dengan ID tersebut ada
+    existing_account = account_repo.get_account_by_id(db, account_id)
+    if not existing_account:
+        raise HTTPException(status_code=404, detail=f"Akun dengan ID {account_id} tidak ditemukan")
+    
+    success = account_repo.delete_account(db, account_id)
+    if not success:
+        raise HTTPException(status_code=500, detail="Gagal menghapus akun")
+    
+    return {"message": f"Akun dengan ID {account_id} berhasil dihapus"}
+
     existing_account = account_repo.get_account_by_id(db, account_id)
     if not existing_account:
         raise HTTPException(status_code=404, detail=f"Akun dengan ID {account_id} tidak ditemukan")
