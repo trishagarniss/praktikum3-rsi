@@ -21,7 +21,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 SECRET_KEY = "kunci_rahasia_kelompok_dua_rsi_b" 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 # Token akan hangus dalam 60 menit
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 # Token bakal hangus dalam 60 menit
 
 def create_access_token(data: dict):
     """Fungsi untuk membuat token JWT setelah login berhasil"""
@@ -35,7 +35,6 @@ def create_access_token(data: dict):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-# Inisialisasi skema Bearer Token untuk Swagger UI
 token_auth_scheme = HTTPBearer()
 
 def get_current_user_payload(credentials: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
