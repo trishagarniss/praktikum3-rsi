@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = 'http://127.0.0.1:8000';
 
 const AdminEvents = () => {
   const [events, setEvents] = useState<any[]>([]);
@@ -17,19 +17,17 @@ const AdminEvents = () => {
     status: 'Upcoming'
   });
 
-  // 1. Fungsi GET Data Events dari Backend
-  const fetchEvents = async () => {
+const fetchEvents = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/events`);
+      // Tambahkan garis miring di belakang events/
+      const response = await fetch(`${API_URL}/events/`); 
       if (!response.ok) throw new Error('Gagal mengambil data dari server');
       
       const result = await response.json();
-      // Asumsi backend mengembalikan format: { data: [...] } atau array langsung [...]
-      setEvents(result.data || result); 
+      setEvents(result); // Swagger menunjukkan array langsung, tidak dibungkus 'data'
     } catch (error) {
       console.error("Error fetching events:", error);
-      // Opsional: Tampilkan toast/alert error di sini
     } finally {
       setIsLoading(false);
     }
@@ -113,14 +111,18 @@ const AdminEvents = () => {
                 ) : events.length === 0 ? (
                   <tr><td colSpan={6} className="h-32 text-center text-slate-400">Belum ada event ditemukan.</td></tr>
                 ) : (
-                  events.map((event, index) => (
+                events.map((event, index) => (
                     <tr key={event.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="p-6 text-slate-500">{index + 1}</td>
-                      <td className="p-6 font-medium">{event.nama_event}</td>
-                      <td className="p-6 text-slate-500">{event.tanggal}</td>
-                      <td className="p-6 text-slate-500">{event.lokasi}</td>
+                      {/* Gunakan .name dari backend */}
+                      <td className="p-6 font-medium">{event.name}</td>
+                      {/* Gunakan .started_at dan potong string-nya agar hanya muncul tanggal */}
+                      <td className="p-6 text-slate-500">{String(event.started_at).split('T')[0]}</td>
+                      {/* Karena lokasi tidak ada, kita tampilkan description sementara */}
+                      <td className="p-6 text-slate-500">{event.description || '-'}</td>
                       <td className="p-6 text-center">
-                        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold">{event.status}</span>
+                        {/* Status di-hardcode dulu karena backend belum punya kolomnya */}
+                        <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-100 px-2.5 py-0.5 text-xs font-semibold">Upcoming</span>
                       </td>
                       <td className="p-6 text-right space-x-3">
                         <button className="text-sm font-medium text-slate-500 hover:text-indigo-600">Edit</button>
