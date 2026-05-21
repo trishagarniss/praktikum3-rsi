@@ -43,7 +43,7 @@ def get_event_by_id_route(
 @router.put("/{event_id}", response_model=EventResponse)
 def update_event_route(
     event_id: int, 
-    event: EventCreate, 
+    event: EventUpdate, 
     db: Session = Depends(get_session),
     admin_payload: dict = Depends(require_admin)
 ):
