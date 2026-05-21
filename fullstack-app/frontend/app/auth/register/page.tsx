@@ -21,6 +21,22 @@ import Link from "next/link";
 
 export default function RegistrationCard() {
   const router = useRouter()
+
+  useEffect(() => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      router.push("/")
+    }
+
+    const handleAuthChange = () => {
+      if (localStorage.getItem("token")) {
+        router.push("/")
+      }
+    }
+    window.addEventListener("auth-change", handleAuthChange)
+    return () => window.removeEventListener("auth-change", handleAuthChange)
+  }, [router])
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");

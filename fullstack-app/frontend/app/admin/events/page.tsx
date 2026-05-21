@@ -21,7 +21,10 @@ const AdminEvents = () => {
   const [isSubmitting, setIsSubmitting] = useState(false); // State untuk loading saat POST
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newEvent, setNewEvent] = useState({
+  const [editingEvent, setEditingEvent] = useState<AdminEvent | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingEvent, setDeletingEvent] = useState<AdminEvent | null>(null);
+  const [formEvent, setFormEvent] = useState({
     name: '',
     description: '',
     quota: 30,
@@ -80,18 +83,42 @@ const AdminEvents = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // 2. Fungsi POST Data Event Baru ke Backend
+  // 2. Buka modal Add
+  const openAddModal = () => {
+    setEditingEvent(null);
+    setFormEvent({ name: '', description: '', quota: 30, started_at: '', ended_at: '' });
+    setIsModalOpen(true);
+  };
+
+  // 3. Buka modal Edit
+  const handleEdit = (event: AdminEvent) => {
+    setEditingEvent(event);
+    setFormEvent({
+      name: event.name,
+      description: event.description,
+      quota: event.quota,
+      started_at: event.started_at.slice(0, 16),
+      ended_at: event.ended_at.slice(0, 16),
+    });
+    setIsModalOpen(true);
+  };
+
+  // 4. Fungsi POST/PUT Data Event ke Backend
   const handleSaveEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     
     try {
-      const response = await fetch(`${API_URL}/events`, {
-        method: 'POST',
+      const isEdit = editingEvent !== null;
+      const url = isEdit ? `${API_URL}/events/${editingEvent!.id}` : `${API_URL}/events`;
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          ...newEvent,
-          quota: Number(newEvent.quota),
+          ...formEvent,
+          quota: Number(formEvent.quota),
         }),
       });
 
@@ -101,12 +128,47 @@ const AdminEvents = () => {
       }
 
       setIsModalOpen(false);
-      setNewEvent({ name: '', description: '', quota: 30, started_at: '', ended_at: '' });
+      setEditingEvent(null);
+      setFormEvent({ name: '', description: '', quota: 30, started_at: '', ended_at: '' });
       fetchEvents(); 
       
     } catch (error) {
       console.error("Error saving event:", error);
       alert(error instanceof Error ? error.message : "Terjadi kesalahan saat menyimpan event.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 5. Buka modal konfirmasi Delete
+  const handleDeleteClick = (event: AdminEvent) => {
+    setDeletingEvent(event);
+    setIsDeleteModalOpen(true);
+  };
+
+  // 6. Konfirmasi Delete
+  const handleDeleteConfirm = async () => {
+    if (!deletingEvent) return;
+    setIsSubmitting(true);
+    
+    try {
+      const response = await fetch(`${API_URL}/events/${deletingEvent.id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Gagal menghapus event');
+      }
+
+      setIsDeleteModalOpen(false);
+      setDeletingEvent(null);
+      fetchEvents(); 
+      
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert(error instanceof Error ? error.message : "Terjadi kesalahan saat menghapus event.");
     } finally {
       setIsSubmitting(false);
     }
@@ -130,7 +192,7 @@ const AdminEvents = () => {
             <button className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-slate-200 bg-white hover:bg-slate-100 h-10 px-4 py-2 shadow-sm">
               Export Excel
             </button>
-            <button onClick={() => setIsModalOpen(true)} className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-10 px-4 py-2 shadow-sm">
+            <button onClick={openAddModal} className="inline-flex items-center justify-center rounded-md text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 h-10 px-4 py-2 shadow-sm">
               + Add Event
             </button>
           </div>
@@ -168,8 +230,8 @@ const AdminEvents = () => {
                         </span>
                       </td>
                       <td className="p-6 text-right space-x-3">
-                        <button className="text-sm font-medium text-slate-500 hover:text-indigo-600">Edit</button>
-                        <button className="text-sm font-medium text-slate-500 hover:text-red-600">Delete</button>
+                        <button onClick={() => handleEdit(event)} className="text-sm font-medium text-slate-500 hover:text-indigo-600">Edit</button>
+                        <button onClick={() => handleDeleteClick(event)} className="text-sm font-medium text-slate-500 hover:text-red-600">Delete</button>
                       </td>
                     </tr>
                   ))
@@ -186,45 +248,67 @@ const AdminEvents = () => {
         </div>
       </div>
 
-      {/* MODAL Add Event */}
+      {/* MODAL Add/Edit Event */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-sm">
           <div className="w-full max-w-lg bg-white rounded-xl border border-slate-200 shadow-2xl">
             <div className="p-6 border-b border-slate-100">
-              <h2 className="text-xl font-semibold text-slate-900">Add New Event</h2>
+              <h2 className="text-xl font-semibold text-slate-900">{editingEvent ? 'Edit Event' : 'Add New Event'}</h2>
             </div>
             <form onSubmit={handleSaveEvent}>
               <div className="p-6 space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Nama Event</label>
-                  <input required type="text" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={newEvent.name} onChange={(e) => setNewEvent({...newEvent, name: e.target.value})} />
+                  <input required type="text" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={formEvent.name} onChange={(e) => setFormEvent({...formEvent, name: e.target.value})} />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Deskripsi</label>
-                  <textarea className="flex w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600 min-h-[80px]" value={newEvent.description} onChange={(e) => setNewEvent({...newEvent, description: e.target.value})} />
+                  <textarea className="flex w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600 min-h-[80px]" value={formEvent.description} onChange={(e) => setFormEvent({...formEvent, description: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Mulai</label>
-                    <input required type="datetime-local" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={newEvent.started_at} onChange={(e) => setNewEvent({...newEvent, started_at: e.target.value})} />
+                    <input required type="datetime-local" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={formEvent.started_at} onChange={(e) => setFormEvent({...formEvent, started_at: e.target.value})} />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Selesai</label>
-                    <input required type="datetime-local" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={newEvent.ended_at} onChange={(e) => setNewEvent({...newEvent, ended_at: e.target.value})} />
+                    <input required type="datetime-local" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={formEvent.ended_at} onChange={(e) => setFormEvent({...formEvent, ended_at: e.target.value})} />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Kuota Peserta</label>
-                  <input required type="number" min="1" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={newEvent.quota} onChange={(e) => setNewEvent({...newEvent, quota: Number(e.target.value)})} />
+                  <input required type="number" min="1" className="flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-indigo-600" value={formEvent.quota} onChange={(e) => setFormEvent({...formEvent, quota: Number(e.target.value)})} />
                 </div>
               </div>
               <div className="p-6 border-t flex justify-end gap-3 bg-slate-50/50 rounded-b-xl">
-                <button type="button" onClick={() => setIsModalOpen(false)} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium border bg-white rounded-md hover:bg-slate-100 disabled:opacity-50">Cancel</button>
+                <button type="button" onClick={() => { setIsModalOpen(false); setEditingEvent(null); }} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium border bg-white rounded-md hover:bg-slate-100 disabled:opacity-50">Cancel</button>
                 <button type="submit" disabled={isSubmitting} className="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 min-w-[100px]">
-                  {isSubmitting ? 'Menyimpan...' : 'Save Event'}
+                  {isSubmitting ? 'Menyimpan...' : (editingEvent ? 'Update Event' : 'Save Event')}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL Konfirmasi Delete */}
+      {isDeleteModalOpen && deletingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-sm">
+          <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 shadow-2xl">
+            <div className="p-6 border-b border-slate-100">
+              <h2 className="text-xl font-semibold text-slate-900">Hapus Event</h2>
+            </div>
+            <div className="p-6">
+              <p className="text-slate-600">
+                Apakah kamu yakin ingin menghapus event <strong>{deletingEvent.name}</strong>? Tindakan ini tidak dapat dibatalkan.
+              </p>
+            </div>
+            <div className="p-6 border-t flex justify-end gap-3 bg-slate-50/50 rounded-b-xl">
+              <button type="button" onClick={() => { setIsDeleteModalOpen(false); setDeletingEvent(null); }} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium border bg-white rounded-md hover:bg-slate-100 disabled:opacity-50">Batal</button>
+              <button type="button" onClick={handleDeleteConfirm} disabled={isSubmitting} className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 min-w-[100px]">
+                {isSubmitting ? 'Menghapus...' : 'Ya, Hapus'}
+              </button>
+            </div>
           </div>
         </div>
       )}

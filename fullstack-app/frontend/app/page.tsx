@@ -1,5 +1,4 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+import { AuthButtons } from "@/components/auth-buttons"
 import {
   Card,
   CardContent,
@@ -18,14 +17,7 @@ export default function Home() {
         <p className="max-w-md text-center text-muted-foreground">
           Kelola pendaftaran acara dengan mudah, cepat, dan terorganisir
         </p>
-        <div className="flex gap-3">
-          <Button asChild>
-            <Link href="/auth/register">Daftar Sekarang</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/auth/login">Masuk</Link>
-          </Button>
-        </div>
+        <AuthButtons />
       </section>
 
       <section className="border-t px-4 py-12">
